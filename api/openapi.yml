@@ -1,0 +1,7 @@
+openapi: 3.0.1
+info:
+  title: Keat/KitService
+  description: "A service for meal kits, categories, categories, ingredients and such. Darn, what's excluded?: orders, payments, users."
+  contact:
+    email: vahdetkeskin@gmail.com
+  version: "1.0.0"
