@@ -2,13 +2,16 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
+	"os/signal"
 
 	"github.com/gimmickless/keat-kit-service/internal/app"
 	egdb "github.com/gimmickless/keat-kit-service/internal/transport/egress/db"
 	inhttp "github.com/gimmickless/keat-kit-service/internal/transport/ingress/http"
 	applog "github.com/gimmickless/keat-kit-service/pkg/logging"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/etag"
 	httplogger "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/joho/godotenv"
@@ -42,13 +45,26 @@ func main() {
 		handler    = inhttp.NewHTTPHandler(logger, catgSrv, ingredSrv, kitSrv)
 	)
 
+	// Init Fiber web framework and attach middlewares
 	app := fiber.New()
-
-	// Middleware
+	app.Use(etag.New())
 	app.Use(recover.New())
 	app.Use(httplogger.New())
 
 	inhttp.Register(app, handler)
 
-	app.Listen(fmt.Sprintf(":%s", port))
+	// Start server in a separate goroutine
+	go func() {
+		if err := app.Listen(fmt.Sprintf(":%s", port)); err != nil && err != http.ErrServerClosed {
+			logger.Fatalf("shutting down the server %v", err)
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shutdown the server with a timeout.
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
+	<-quit
+	if err := app.Shutdown(); err != nil {
+		logger.Fatal(err)
+	}
 }

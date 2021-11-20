@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Backlog]
 
-- Add agent to monitoring and metrics (if NewRelic is expensive, try CloudWatch?)
+- Add agent to monitoring and metrics (Create NewRelic account and add agent, add Prometheus endpoint)
 
 ## [1.0.0] - 2021-??-??
 

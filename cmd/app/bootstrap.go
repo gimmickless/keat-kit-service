@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/newrelic/go-agent/v3/integrations/nrmongo"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -21,28 +22,22 @@ var (
 )
 
 func initdb() (*mongo.Database, context.CancelFunc, func()) {
-	opts := options.Client().ApplyURI(mongoURI)
+	nrMon := nrmongo.NewCommandMonitor(nil)
+	opts := options.Client().ApplyURI(mongoURI).SetMonitor(nrMon)
 	ctx, cancel := context.WithTimeout(context.Background(), dbConnectionTimeout)
-	defer cancel()
 	client, err := mongo.Connect(ctx, opts)
 	if err != nil {
-		log.Fatalf("failed to connect db: %w", err)
+		log.Fatalf("failed to connect db: %v", err)
 	}
 	err = client.Ping(ctx, readpref.Primary())
 	if err != nil {
-		log.Fatalf("failed to ping db: %w", err)
+		log.Fatalf("failed to ping db: %v", err)
 	}
-	defer func() {
-		err = client.Disconnect(ctx)
-		if err != nil {
-			log.Fatalf("failed to disconnect db: %w", err)
-		}
-	}()
 
 	return client.Database(mongoCampaignDB), cancel, func() {
 		err = client.Disconnect(ctx)
 		if err != nil {
-			log.Fatalf("failed to disconnect db: %w", err)
+			log.Fatalf("failed to disconnect db: %v", err)
 		}
 	}
 }
