@@ -7,6 +7,15 @@ import (
 	"go.uber.org/zap"
 )
 
+type IKitService interface {
+	Create(ctx context.Context, catg domain.Kit) (string, error)
+	Update(ctx context.Context, id string, catg domain.Kit) error
+	UpdatePrice(ctx context.Context, id string, price domain.Price) error
+	Delete(ctx context.Context, id string) error
+	Get(ctx context.Context, id string) (domain.Kit, error)
+	GetAll(ctx context.Context) ([]domain.Kit, error)
+}
+
 type KitService struct {
 	logger  *zap.SugaredLogger
 	kitRepo IKitRepo

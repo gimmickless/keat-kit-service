@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
-	github.com/gofiber/fiber/v2 v2.21.0 // indirect
+	github.com/gofiber/fiber/v2 v2.22.0 // indirect
 	github.com/joho/godotenv v1.4.0 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
@@ -32,6 +32,7 @@ require (
 )
 
 require (
+	github.com/golang-jwt/jwt/v4 v4.1.0
 	github.com/golang/protobuf v1.3.3 // indirect
 	github.com/newrelic/go-agent/v3 v3.6.0 // indirect
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed // indirect

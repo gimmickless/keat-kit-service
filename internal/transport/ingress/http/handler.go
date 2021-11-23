@@ -23,6 +23,7 @@ func NewHTTPHandler(
 	return &HTTPHandler{logger, catgsrv, ingredsrv, kitsrv}
 }
 
+// Category handlers
 func (h *HTTPHandler) GetCategories(c *fiber.Ctx) error {
 	return c.JSON([]categoryResp{})
 }
@@ -31,6 +32,25 @@ func (h *HTTPHandler) GetCategory(c *fiber.Ctx) error {
 	return c.JSON(categoryResp{})
 }
 
+func (h *HTTPHandler) SuggestCategory(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"id": "1",
+	})
+}
+
+func (h *HTTPHandler) UpdateCategory(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusOK).JSON(categoryResp{})
+}
+
+func (h *HTTPHandler) UploadCategoryImage(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusOK).JSON(categoryResp{})
+}
+
+func (h *HTTPHandler) DeleteCategory(c *fiber.Ctx) error {
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// Ingredient handlers
 func (h *HTTPHandler) GetIngredients(c *fiber.Ctx) error {
 	return c.JSON([]ingredientResp{})
 }
@@ -39,6 +59,25 @@ func (h *HTTPHandler) GetIngredient(c *fiber.Ctx) error {
 	return c.JSON(ingredientResp{})
 }
 
+func (h *HTTPHandler) SuggestIngredient(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"id": "1",
+	})
+}
+
+func (h *HTTPHandler) UpdateIngredient(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusOK).JSON(ingredientResp{})
+}
+
+func (h *HTTPHandler) UploadIngredientImage(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusOK).JSON(categoryResp{})
+}
+
+func (h *HTTPHandler) DeleteIngredient(c *fiber.Ctx) error {
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// Kit handlers
 func (h *HTTPHandler) GetKits(c *fiber.Ctx) error {
 	return c.JSON([]kitResp{})
 }
@@ -58,33 +97,5 @@ func (h *HTTPHandler) UpdateKit(c *fiber.Ctx) error {
 }
 
 func (h *HTTPHandler) DeleteKit(c *fiber.Ctx) error {
-	return c.SendStatus(fiber.StatusNoContent)
-}
-
-func (h *HTTPHandler) CreateCategory(c *fiber.Ctx) error {
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"id": "1",
-	})
-}
-
-func (h *HTTPHandler) UpdateCategory(c *fiber.Ctx) error {
-	return c.Status(fiber.StatusOK).JSON(categoryResp{})
-}
-
-func (h *HTTPHandler) DeleteCategory(c *fiber.Ctx) error {
-	return c.SendStatus(fiber.StatusNoContent)
-}
-
-func (h *HTTPHandler) CreateIngredient(c *fiber.Ctx) error {
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"id": "1",
-	})
-}
-
-func (h *HTTPHandler) UpdateIngredient(c *fiber.Ctx) error {
-	return c.Status(fiber.StatusOK).JSON(ingredientResp{})
-}
-
-func (h *HTTPHandler) DeleteIngredient(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }

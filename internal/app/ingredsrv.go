@@ -7,6 +7,14 @@ import (
 	"go.uber.org/zap"
 )
 
+type IIngredientService interface {
+	Create(ctx context.Context, catg domain.Ingredient) (string, error)
+	Update(ctx context.Context, id string, catg domain.Ingredient) error
+	Delete(ctx context.Context, id string) error
+	Get(ctx context.Context, id string) (domain.Ingredient, error)
+	GetAll(ctx context.Context) ([]domain.Ingredient, error)
+}
+
 type IngredientService struct {
 	logger     *zap.SugaredLogger
 	ingredRepo IIngredientRepo

@@ -7,6 +7,14 @@ import (
 	"go.uber.org/zap"
 )
 
+type ICategoryService interface {
+	Create(ctx context.Context, catg domain.Category) (string, error)
+	Update(ctx context.Context, id string, catg domain.Category) error
+	Delete(ctx context.Context, id string) error
+	Get(ctx context.Context, id string) (domain.Category, error)
+	GetAll(ctx context.Context) ([]domain.Category, error)
+}
+
 type CategoryService struct {
 	logger   *zap.SugaredLogger
 	catgRepo ICategoryRepo
