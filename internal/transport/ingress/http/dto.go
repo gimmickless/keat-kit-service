@@ -11,6 +11,8 @@ type categoryResp struct {
 
 type ingredientResp struct {
 	ID       string  `json:"id"`
+	Code     string  `json:"code"`
+	Name     string  `json:"name"`
 	Unit     string  `json:"unit"`
 	Size     string  `json:"size"`
 	ImageURL string  `json:"imageUrl"`

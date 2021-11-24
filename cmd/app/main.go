@@ -56,7 +56,7 @@ func main() {
 	// Start server in a separate goroutine
 	go func() {
 		if err := app.Listen(fmt.Sprintf(":%s", port)); err != nil && err != http.ErrServerClosed {
-			logger.Fatalf("shutting down the server %v", err)
+			logger.Fatalw("shutting down the server:", "error", err)
 		}
 	}()
 

@@ -48,8 +48,7 @@ func (r *CategoryRepository) Insert(ctx context.Context, catg domain.Category) (
 	if oid, ok := res.InsertedID.(primitive.ObjectID); ok {
 		return oid.Hex(), nil
 	}
-
-	return "", fmt.Errorf("failed to convert objectfor category: %v", catg.Name)
+	return "", fmt.Errorf("failed to convert object for category %s", catg.Name)
 }
 
 func (r *CategoryRepository) Update(ctx context.Context, id string, catg domain.Category) error {
@@ -134,11 +133,11 @@ func (r *CategoryRepository) GetAll(ctx context.Context) ([]domain.Category, err
 		return nil, err
 	}
 
-	categories := make([]domain.Category, len(daos))
+	catgs := make([]domain.Category, len(daos))
 	for _, d := range daos {
-		categories = append(categories, convertToDomainCategory(d))
+		catgs = append(catgs, convertToDomainCategory(d))
 	}
-	return categories, nil
+	return catgs, nil
 }
 
 // Auxiliary functions

@@ -45,3 +45,5 @@ The [AWS API Gateway](https://aws.amazon.com/api-gateway/) should validate the J
 - [Go Standard Project Layout](https://github.com/golang-standards/project-layout)
 
 - [NewRelic Go framework integrations](https://docs.newrelic.com/docs/apm/agents/go-agent/get-started/go-agent-compatibility-requirements/#frameworks)
+
+- A reason for using `self` or `me` in REST URI when the user id can be extracted from the JWT and the user only manage data of themselves: https://softwareengineering.stackexchange.com/a/362064/374006
