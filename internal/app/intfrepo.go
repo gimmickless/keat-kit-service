@@ -25,7 +25,7 @@ type IIngredientRepo interface {
 type IKitRepo interface {
 	Insert(ctx context.Context, catg domain.Kit) (string, error)
 	Update(ctx context.Context, id string, catg domain.Kit) error
-	UpdatePrice(ctx context.Context, id string, price domain.Price) error
+	UpdatePrice(ctx context.Context, id string, price []domain.Price) error
 	Delete(ctx context.Context, id string) error
 	Get(ctx context.Context, id string) (domain.Kit, error)
 	GetAll(ctx context.Context) ([]domain.Kit, error)

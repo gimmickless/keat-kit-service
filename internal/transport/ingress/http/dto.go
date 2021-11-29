@@ -26,14 +26,14 @@ type kitResp struct {
 	Version       string                `json:"version"`
 	Description   string                `json:"description"`
 	Status        string                `json:"status"`
-	Author        string                `json:"author"` // username of author
+	AuthorID      string                `json:"authorId"` // username of author
 	Recipe        []preparationStepResp `json:"recipe"`
 	Energy        float64               `json:"energy"` // in kcal
-	Portions      float64               `json:"portions"`
+	Portion       float64               `json:"portion"`
 	PrepTime      int                   `json:"prepTime"` // in minutes
 	CreatedAt     time.Time             `json:"createdAt"`
 	LastUpdatedAt time.Time             `json:"lastUpdatedAt"`
-	Price         priceResp             `json:"price"`
+	Prices        []priceResp           `json:"prices"`
 }
 
 // Auxiliary
@@ -44,7 +44,8 @@ type preparationStepResp struct {
 }
 
 type priceResp struct {
-	KitID    string `json:"kitID"`
-	Country  string `json:"country"`  // ISO 3166-1 alpha-2 code
-	Currency string `json:"currency"` // ISO 4217 code of currency
+	KitID    string  `json:"kitID"`
+	Amount   float64 `json:"amount"`
+	Country  string  `json:"country"`  // ISO 3166-1 alpha-2 code
+	Currency string  `json:"currency"` // ISO 4217 code of currency
 }

@@ -36,8 +36,8 @@ func (s *KitService) Update(ctx context.Context, id string, catg domain.Kit) err
 	return s.kitRepo.Update(ctx, id, catg)
 }
 
-func (s *KitService) UpdatePrice(ctx context.Context, id string, price domain.Price) error {
-	return s.kitRepo.UpdatePrice(ctx, id, price)
+func (s *KitService) UpdatePrice(ctx context.Context, id string, prices []domain.Price) error {
+	return s.kitRepo.UpdatePrice(ctx, id, prices)
 }
 
 func (s *KitService) Delete(ctx context.Context, id string) error {
