@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gimmickless/keat-kit-service/internal/domain"
+	"github.com/gimmickless/keat-kit-service/pkg/custom"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -92,6 +93,11 @@ func (r *KitRepository) Insert(ctx context.Context, kit domain.Kit) (string, err
 
 // Updates the non-price fields of the kit
 func (r *KitRepository) Update(ctx context.Context, id string, kit domain.Kit) error {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		r.logger.Errorw("failed to convert string to mongo ObjectID", "id", id, "error", err)
+		return err
+	}
 	after := options.After
 	opt := options.FindOneAndUpdateOptions{
 		ReturnDocument: &after,
@@ -104,8 +110,8 @@ func (r *KitRepository) Update(ctx context.Context, id string, kit domain.Kit) e
 
 	res := r.kitColl.FindOneAndUpdate(
 		ctx,
-		bson.M{"_id": id},
-		bson.D{
+		bson.M{"_id": objectID},
+		bson.M{"$set": bson.D{
 			primitive.E{Key: "categoryIds", Value: kit.CategoryIDs},
 			primitive.E{Key: "name", Value: kit.Name},
 			primitive.E{Key: "version", Value: kit.Version},
@@ -117,11 +123,14 @@ func (r *KitRepository) Update(ctx context.Context, id string, kit domain.Kit) e
 			primitive.E{Key: "portion", Value: kit.Portion},
 			primitive.E{Key: "prepTime", Value: kit.PrepTime},
 			primitive.E{Key: "lastUpdatedAt", Value: kit.LastUpdatedAt},
-		},
+		}},
 		&opt,
 	)
 
 	if err := res.Err(); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return &custom.ElemNotFoundError{ID: id, Err: fmt.Errorf("no kit found to update")}
+		}
 		r.logger.Errorw("failed to update kit", "kit", kit, "error", err)
 		return err
 	}
@@ -130,6 +139,11 @@ func (r *KitRepository) Update(ctx context.Context, id string, kit domain.Kit) e
 
 // Updates the prices of the kit
 func (r *KitRepository) UpdatePrice(ctx context.Context, id string, prices []domain.Price) error {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		r.logger.Errorw("failed to convert string to mongo ObjectID", "id", id, "error", err)
+		return err
+	}
 	after := options.After
 	opt := options.FindOneAndUpdateOptions{
 		ReturnDocument: &after,
@@ -142,14 +156,17 @@ func (r *KitRepository) UpdatePrice(ctx context.Context, id string, prices []dom
 
 	res := r.kitColl.FindOneAndUpdate(
 		ctx,
-		bson.M{"_id": id},
-		bson.D{
+		bson.M{"_id": objectID},
+		bson.M{"$set": bson.D{
 			primitive.E{Key: "prices", Value: priceDAOs},
-		},
+		}},
 		&opt,
 	)
 
 	if err := res.Err(); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return &custom.ElemNotFoundError{ID: id, Err: fmt.Errorf("no kit found to update prices")}
+		}
 		r.logger.Errorw("failed to update kit prices", "prices", prices, "error", err)
 		return err
 	}
@@ -168,7 +185,7 @@ func (r *KitRepository) Delete(ctx context.Context, id string) error {
 		return err
 	}
 	if res.DeletedCount == 0 {
-		return fmt.Errorf("no kit found to delete with id %s", id)
+		return &custom.ElemNotFoundError{ID: id, Err: fmt.Errorf("no kit found to delete")}
 	}
 	return nil
 }
@@ -181,6 +198,10 @@ func (r *KitRepository) Get(ctx context.Context, id string) (domain.Kit, error) 
 	}
 	var kitDAO kitFetchDAO
 	if err = r.kitColl.FindOne(ctx, bson.M{"_id": objectID}).Decode(&kitDAO); err != nil {
+		if err == mongo.ErrNoDocuments {
+			r.logger.Debugw("no category found with id", "id", id)
+			return domain.Kit{}, &custom.ElemNotFoundError{ID: id, Err: err}
+		}
 		r.logger.Errorw("error getting kit", "id", id, "error", err)
 		return domain.Kit{}, err
 	}

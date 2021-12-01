@@ -17,3 +17,6 @@
 # dotenv
 .env
 .env.*
+
+# IDE
+.vscode

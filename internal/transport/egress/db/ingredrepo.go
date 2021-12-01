@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gimmickless/keat-kit-service/internal/domain"
+	"github.com/gimmickless/keat-kit-service/pkg/custom"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -45,10 +46,7 @@ func (r *IngredientRepository) Insert(ctx context.Context, ingred domain.Ingredi
 		primitive.E{Key: "unitEnergy", Value: ingred.UnitEnergy},
 	})
 	if err != nil {
-		r.logger.Errorw("failed to insert ingredient",
-			"ingredient", ingred,
-			"error", err,
-		)
+		r.logger.Errorw("failed to insert ingredient", "ingredient", ingred, "error", err)
 		return "", err
 	}
 	if oid, ok := res.InsertedID.(primitive.ObjectID); ok {
@@ -58,29 +56,34 @@ func (r *IngredientRepository) Insert(ctx context.Context, ingred domain.Ingredi
 }
 
 func (r *IngredientRepository) Update(ctx context.Context, id string, ingred domain.Ingredient) error {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		r.logger.Errorw("failed to convert string to mongo ObjectID", "id", id, "error", err)
+		return err
+	}
 	after := options.After
 	opt := options.FindOneAndUpdateOptions{
 		ReturnDocument: &after,
 	}
 	res := r.ingredColl.FindOneAndUpdate(
 		ctx,
-		bson.M{"_id": id},
-		bson.D{
+		bson.M{"_id": objectID},
+		bson.M{"$set": bson.D{
 			primitive.E{Key: "code", Value: ingred.Code},
 			primitive.E{Key: "name", Value: ingred.Name},
 			primitive.E{Key: "unit", Value: ingred.Unit},
 			primitive.E{Key: "size", Value: ingred.Size},
 			primitive.E{Key: "imgPath", Value: ingred.ImgPath},
 			primitive.E{Key: "unitEnergy", Value: ingred.UnitEnergy},
-		},
+		}},
 		&opt,
 	)
 
 	if err := res.Err(); err != nil {
-		r.logger.Errorw("failed to update ingredient",
-			"ingredient", ingred,
-			"error", err,
-		)
+		if err == mongo.ErrNoDocuments {
+			return &custom.ElemNotFoundError{ID: id, Err: fmt.Errorf("no ingredient found to update")}
+		}
+		r.logger.Errorw("failed to update ingredient", "ingredient", ingred, "error", err)
 		return err
 	}
 	return nil
@@ -89,22 +92,16 @@ func (r *IngredientRepository) Update(ctx context.Context, id string, ingred dom
 func (r *IngredientRepository) Delete(ctx context.Context, id string) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		r.logger.Errorw("could not convert id to objectID",
-			"id", id,
-			"error", err,
-		)
+		r.logger.Errorw("could not convert id to objectID", "id", id, "error", err)
 	}
 
 	res, err := r.ingredColl.DeleteOne(ctx, bson.M{"_id": objectID})
 	if err != nil {
-		r.logger.Errorw("failed to delete ingredient",
-			"id", id,
-			"error", err,
-		)
+		r.logger.Errorw("failed to delete ingredient", "id", id, "error", err)
 		return err
 	}
 	if res.DeletedCount == 0 {
-		return fmt.Errorf("no ingredient found to delete with id %s", id)
+		return &custom.ElemNotFoundError{ID: id, Err: fmt.Errorf("no ingredient found to delete")}
 	}
 	return nil
 }
@@ -117,6 +114,10 @@ func (r *IngredientRepository) Get(ctx context.Context, id string) (domain.Ingre
 	}
 	var ingredDAO ingredientFetchDAO
 	if err = r.ingredColl.FindOne(ctx, bson.M{"_id": objectID}).Decode(&ingredDAO); err != nil {
+		if err == mongo.ErrNoDocuments {
+			r.logger.Debugw("no ingredient found with id", "id", id)
+			return domain.Ingredient{}, &custom.ElemNotFoundError{ID: id, Err: err}
+		}
 		r.logger.Errorw("error getting ingredient", "id", id, "error", err)
 		return domain.Ingredient{}, err
 	}
