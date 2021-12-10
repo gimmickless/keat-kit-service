@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/gimmickless/keat-kit-service/internal/domain"
+	"github.com/gimmickless/keat-kit-service/pkg/enum"
 )
 
 type ICategoryRepo interface {
@@ -19,6 +20,9 @@ type IIngredientRepo interface {
 	Update(ctx context.Context, id string, catg domain.Ingredient) error
 	Delete(ctx context.Context, id string) error
 	Get(ctx context.Context, id string) (domain.Ingredient, error)
+	GetPaginated(
+		ctx context.Context, limit int, offset int, sortField string, sortDirection enum.SortDirection,
+	) ([]domain.Ingredient, error)
 	GetAll(ctx context.Context) ([]domain.Ingredient, error)
 }
 
@@ -28,5 +32,8 @@ type IKitRepo interface {
 	UpdatePrice(ctx context.Context, id string, price []domain.Price) error
 	Delete(ctx context.Context, id string) error
 	Get(ctx context.Context, id string) (domain.Kit, error)
+	GetPaginated(
+		ctx context.Context, limit int, offset int, sortField string, sortDirection enum.SortDirection,
+	) ([]domain.Kit, error)
 	GetAll(ctx context.Context) ([]domain.Kit, error)
 }

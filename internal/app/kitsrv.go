@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/gimmickless/keat-kit-service/internal/domain"
+	"github.com/gimmickless/keat-kit-service/pkg/enum"
 	"go.uber.org/zap"
 )
 
@@ -13,6 +14,9 @@ type IKitService interface {
 	UpdatePrice(ctx context.Context, id string, price domain.Price) error
 	Delete(ctx context.Context, id string) error
 	Get(ctx context.Context, id string) (domain.Kit, error)
+	GetPage(
+		ctx context.Context, page int, pageSize int, sortField string, sortDirection enum.SortDirection,
+	) ([]domain.Kit, error)
 	GetAll(ctx context.Context) ([]domain.Kit, error)
 }
 
@@ -46,6 +50,12 @@ func (s *KitService) Delete(ctx context.Context, id string) error {
 
 func (s *KitService) Get(ctx context.Context, id string) (domain.Kit, error) {
 	return s.kitRepo.Get(ctx, id)
+}
+
+func (s *KitService) GetPage(
+	ctx context.Context, page int, pageSize int, sortField string, sortDirection enum.SortDirection,
+) ([]domain.Kit, error) {
+	return s.kitRepo.GetPaginated(ctx, pageSize, page-1, sortField, sortDirection)
 }
 
 func (s *KitService) GetAll(ctx context.Context) ([]domain.Kit, error) {

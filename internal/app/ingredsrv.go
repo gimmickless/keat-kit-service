@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/gimmickless/keat-kit-service/internal/domain"
+	"github.com/gimmickless/keat-kit-service/pkg/enum"
 	"go.uber.org/zap"
 )
 
@@ -12,6 +13,9 @@ type IIngredientService interface {
 	Update(ctx context.Context, id string, catg domain.Ingredient) error
 	Delete(ctx context.Context, id string) error
 	Get(ctx context.Context, id string) (domain.Ingredient, error)
+	GetPage(
+		ctx context.Context, page int, pageSize int, sortField string, sortDirection enum.SortDirection,
+	) ([]domain.Ingredient, error)
 	GetAll(ctx context.Context) ([]domain.Ingredient, error)
 }
 
@@ -41,6 +45,12 @@ func (s *IngredientService) Delete(ctx context.Context, id string) error {
 
 func (s *IngredientService) Get(ctx context.Context, id string) (domain.Ingredient, error) {
 	return s.ingredRepo.Get(ctx, id)
+}
+
+func (s *IngredientService) GetPage(
+	ctx context.Context, page int, pageSize int, sortField string, sortDirection enum.SortDirection,
+) ([]domain.Ingredient, error) {
+	return s.ingredRepo.GetPaginated(ctx, pageSize, page-1, sortField, sortDirection)
 }
 
 func (s *IngredientService) GetAll(ctx context.Context) ([]domain.Ingredient, error) {

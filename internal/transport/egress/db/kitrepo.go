@@ -7,6 +7,7 @@ import (
 
 	"github.com/gimmickless/keat-kit-service/internal/domain"
 	"github.com/gimmickless/keat-kit-service/pkg/custom"
+	"github.com/gimmickless/keat-kit-service/pkg/enum"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -206,6 +207,12 @@ func (r *KitRepository) Get(ctx context.Context, id string) (domain.Kit, error) 
 		return domain.Kit{}, err
 	}
 	return convertToDomainKit(kitDAO), nil
+}
+
+func (r *KitRepository) GetPaginated(
+	ctx context.Context, limit int, offset int, sortField string, sortDirection enum.SortDirection,
+) ([]domain.Kit, error) {
+	return nil, nil
 }
 
 func (r *KitRepository) GetAll(ctx context.Context) ([]domain.Kit, error) {
