@@ -15,6 +15,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/etag"
 	httplogger "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	jwtware "github.com/gofiber/jwt/v3"
 	"github.com/joho/godotenv"
 )
 
@@ -55,6 +56,9 @@ func main() {
 	app.Use(etag.New())
 	app.Use(recover.New())
 	app.Use(httplogger.New())
+	app.Use(jwtware.New(jwtware.Config{
+		SigningKey: []byte("secret"),
+	}))
 
 	inhttp.Register(app, handler)
 

@@ -58,7 +58,19 @@ func (h *HTTPHandler) UploadCategoryImage(c *fiber.Ctx) error {
 }
 
 func (h *HTTPHandler) DeleteCategory(c *fiber.Ctx) error {
-	return c.SendStatus(fiber.StatusNoContent)
+	catgID := c.Params("id")
+	if !isAdmin(c) {
+		h.logger.Errorw("Not authorized to delete category", "id", catgID)
+		return c.SendStatus(fiber.StatusUnauthorized)
+	}
+	err := h.catgsrv.Delete(c.Context(), catgID)
+	if err != nil {
+		h.logger.Errorw("Could not delete categories", "err", err)
+		return err
+	}
+	return c.JSON(fiber.Map{
+		"id": catgID,
+	})
 }
 
 // Ingredient handlers
