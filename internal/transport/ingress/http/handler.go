@@ -25,11 +25,22 @@ func NewHTTPHandler(
 
 // Category handlers
 func (h *HTTPHandler) GetCategories(c *fiber.Ctx) error {
-	return c.JSON([]categoryResp{})
+	catgs, err := h.catgsrv.GetAll(c.Context())
+	if err != nil {
+		h.logger.Errorw("Could not get categories", "err", err)
+		return err
+	}
+	return c.JSON(catgs)
 }
 
 func (h *HTTPHandler) GetCategory(c *fiber.Ctx) error {
-	return c.JSON(categoryResp{})
+	catgID := c.Params("id")
+	catg, err := h.catgsrv.Get(c.Context(), catgID)
+	if err != nil {
+		h.logger.Errorw("Could not get category", "id", catgID, "err", err)
+		return err
+	}
+	return c.JSON(catg)
 }
 
 func (h *HTTPHandler) SuggestCategory(c *fiber.Ctx) error {

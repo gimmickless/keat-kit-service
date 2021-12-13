@@ -9,6 +9,7 @@ import (
 	"github.com/gimmickless/keat-kit-service/internal/app"
 	egdb "github.com/gimmickless/keat-kit-service/internal/transport/egress/db"
 	inhttp "github.com/gimmickless/keat-kit-service/internal/transport/ingress/http"
+	"github.com/gimmickless/keat-kit-service/pkg/custom"
 	applog "github.com/gimmickless/keat-kit-service/pkg/logging"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/etag"
@@ -46,7 +47,11 @@ func main() {
 	)
 
 	// Init Fiber web framework and attach middlewares
-	app := fiber.New()
+	app := fiber.New(
+		fiber.Config{
+			ErrorHandler: custom.CreateCustomHTTPErrorHandler(),
+		},
+	)
 	app.Use(etag.New())
 	app.Use(recover.New())
 	app.Use(httplogger.New())
