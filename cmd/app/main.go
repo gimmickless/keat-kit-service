@@ -36,6 +36,9 @@ func main() {
 	defer cancel()
 	defer disconnect()
 
+	// Initialize languages
+	initI18n()
+
 	// Init and bind projects
 	var (
 		catgRepo   = egdb.NewCategoryRepository(logger, db)

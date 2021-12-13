@@ -6,10 +6,13 @@ import (
 	"os"
 	"time"
 
+	"github.com/BurntSushi/toml"
 	"github.com/newrelic/go-agent/v3/integrations/nrmongo"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"golang.org/x/text/language"
 )
 
 const (
@@ -40,4 +43,11 @@ func initdb() (*mongo.Database, context.CancelFunc, func()) {
 			log.Fatalf("failed to disconnect db: %v", err)
 		}
 	}
+}
+
+func initI18n() {
+	// TODO: This is incomplete
+	bundle := i18n.NewBundle(language.English)
+	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
+	bundle.LoadMessageFile("en.toml")
 }
