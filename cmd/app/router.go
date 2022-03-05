@@ -1,11 +1,12 @@
-package http
+package main
 
 import (
+	inhttp "github.com/gimmickless/keat-kit-service/internal/transport/ingress/http"
 	"github.com/gimmickless/keat-kit-service/pkg/middleware"
 	"github.com/gofiber/fiber/v2"
 )
 
-func Register(app *fiber.App, handler *HTTPHandler) {
+func initRoutes(app *fiber.App, handler *inhttp.HTTPHandler) {
 	v1api := app.Group("/api/v1")
 	v1catgs := v1api.Group("/categories")
 	v1ingreds := v1api.Group("/ingredients")

@@ -7,11 +7,11 @@ import (
 	"github.com/gimmickless/keat-kit-service/internal/domain"
 	"github.com/gimmickless/keat-kit-service/pkg/custom"
 	"github.com/gimmickless/keat-kit-service/pkg/enum"
+	"github.com/uptrace/opentelemetry-go-extra/otelzap"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.uber.org/zap"
 )
 
 const (
@@ -29,11 +29,11 @@ type ingredientFetchDAO struct {
 }
 
 type IngredientRepository struct {
-	logger     *zap.SugaredLogger
+	logger     *otelzap.SugaredLogger
 	ingredColl *mongo.Collection
 }
 
-func NewIngredientRepository(logger *zap.SugaredLogger, db *mongo.Database) *IngredientRepository {
+func NewIngredientRepository(logger *otelzap.SugaredLogger, db *mongo.Database) *IngredientRepository {
 	return &IngredientRepository{logger, db.Collection(ingredCollName)}
 }
 
@@ -47,7 +47,7 @@ func (r *IngredientRepository) Insert(ctx context.Context, ingred domain.Ingredi
 		primitive.E{Key: "unitEnergy", Value: ingred.UnitEnergy},
 	})
 	if err != nil {
-		r.logger.Errorw("failed to insert ingredient", "ingredient", ingred, "error", err)
+		r.logger.Ctx(ctx).Errorw("failed to insert ingredient", "ingredient", ingred, "error", err)
 		return "", err
 	}
 	if oid, ok := res.InsertedID.(primitive.ObjectID); ok {
@@ -59,7 +59,7 @@ func (r *IngredientRepository) Insert(ctx context.Context, ingred domain.Ingredi
 func (r *IngredientRepository) Update(ctx context.Context, id string, ingred domain.Ingredient) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		r.logger.Errorw("failed to convert string to mongo ObjectID", "id", id, "error", err)
+		r.logger.Ctx(ctx).Errorw("failed to convert string to mongo ObjectID", "id", id, "error", err)
 		return err
 	}
 	after := options.After
@@ -84,7 +84,7 @@ func (r *IngredientRepository) Update(ctx context.Context, id string, ingred dom
 		if err == mongo.ErrNoDocuments {
 			return &custom.ElemNotFoundError{ID: id, Err: fmt.Errorf("no ingredient found to update")}
 		}
-		r.logger.Errorw("failed to update ingredient", "ingredient", ingred, "error", err)
+		r.logger.Ctx(ctx).Errorw("failed to update ingredient", "ingredient", ingred, "error", err)
 		return err
 	}
 	return nil
@@ -93,12 +93,12 @@ func (r *IngredientRepository) Update(ctx context.Context, id string, ingred dom
 func (r *IngredientRepository) Delete(ctx context.Context, id string) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		r.logger.Errorw("could not convert id to objectID", "id", id, "error", err)
+		r.logger.Ctx(ctx).Errorw("could not convert id to objectID", "id", id, "error", err)
 	}
 
 	res, err := r.ingredColl.DeleteOne(ctx, bson.M{"_id": objectID})
 	if err != nil {
-		r.logger.Errorw("failed to delete ingredient", "id", id, "error", err)
+		r.logger.Ctx(ctx).Errorw("failed to delete ingredient", "id", id, "error", err)
 		return err
 	}
 	if res.DeletedCount == 0 {
@@ -110,16 +110,16 @@ func (r *IngredientRepository) Delete(ctx context.Context, id string) error {
 func (r *IngredientRepository) Get(ctx context.Context, id string) (domain.Ingredient, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		r.logger.Errorw("could not convert id to objectID", "id", id, "error", err)
+		r.logger.Ctx(ctx).Errorw("could not convert id to objectID", "id", id, "error", err)
 		return domain.Ingredient{}, err
 	}
 	var ingredDAO ingredientFetchDAO
 	if err = r.ingredColl.FindOne(ctx, bson.M{"_id": objectID}).Decode(&ingredDAO); err != nil {
 		if err == mongo.ErrNoDocuments {
-			r.logger.Debugw("no ingredient found with id", "id", id)
+			r.logger.Ctx(ctx).Debugw("no ingredient found with id", "id", id)
 			return domain.Ingredient{}, &custom.ElemNotFoundError{ID: id, Err: err}
 		}
-		r.logger.Errorw("error getting ingredient", "id", id, "error", err)
+		r.logger.Ctx(ctx).Errorw("error getting ingredient", "id", id, "error", err)
 		return domain.Ingredient{}, err
 	}
 	return convertToDomainIngredient(ingredDAO), nil
@@ -142,11 +142,11 @@ func (r *IngredientRepository) GetAll(ctx context.Context) ([]domain.Ingredient,
 		opts,
 	)
 	if err != nil {
-		r.logger.Errorw("failed to get ingredients from db", "error", err)
+		r.logger.Ctx(ctx).Errorw("failed to get ingredients from db", "error", err)
 		return nil, err
 	}
 	if err = cursor.All(ctx, &daos); err != nil {
-		r.logger.Errorw("failed to map ingredient cursor to a list of DAO objects", "error", err)
+		r.logger.Ctx(ctx).Errorw("failed to map ingredient cursor to a list of DAO objects", "error", err)
 		return nil, err
 	}
 

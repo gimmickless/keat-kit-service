@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/gimmickless/keat-kit-service/internal/domain"
-	"go.uber.org/zap"
+	"github.com/uptrace/opentelemetry-go-extra/otelzap"
 )
 
 type ICategoryService interface {
@@ -16,12 +16,12 @@ type ICategoryService interface {
 }
 
 type CategoryService struct {
-	logger   *zap.SugaredLogger
+	logger   *otelzap.SugaredLogger
 	catgRepo ICategoryRepo
 }
 
 func NewCategoryService(
-	logger *zap.SugaredLogger,
+	logger *otelzap.SugaredLogger,
 	catgRepo ICategoryRepo,
 ) *CategoryService {
 	return &CategoryService{logger, catgRepo}

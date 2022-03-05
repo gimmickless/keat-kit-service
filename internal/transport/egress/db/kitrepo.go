@@ -8,11 +8,11 @@ import (
 	"github.com/gimmickless/keat-kit-service/internal/domain"
 	"github.com/gimmickless/keat-kit-service/pkg/custom"
 	"github.com/gimmickless/keat-kit-service/pkg/enum"
+	"github.com/uptrace/opentelemetry-go-extra/otelzap"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.uber.org/zap"
 )
 
 const (
@@ -48,23 +48,23 @@ type kitFetchDAO struct {
 }
 
 type KitRepository struct {
-	logger  *zap.SugaredLogger
+	logger  *otelzap.SugaredLogger
 	kitColl *mongo.Collection
 }
 
-func NewKitRepository(logger *zap.SugaredLogger, db *mongo.Database) *KitRepository {
+func NewKitRepository(logger *otelzap.SugaredLogger, db *mongo.Database) *KitRepository {
 	return &KitRepository{logger, db.Collection(kitCollName)}
 }
 
 func (r *KitRepository) Insert(ctx context.Context, kit domain.Kit) (string, error) {
 	recipeDAO, err := convertToDAORecipe(kit.Recipe)
 	if err != nil {
-		r.logger.Errorw("failed to convert to kit DAO", "kit.recipe", kit.Recipe, "error", err)
+		r.logger.Ctx(ctx).Errorw("failed to convert to kit DAO", "kit.recipe", kit.Recipe, "error", err)
 		return "", err
 	}
 	pricesDAO, err := convertToDAOPrices(kit.Prices)
 	if err != nil {
-		r.logger.Errorw("failed to convert to kit DAO", "kit.prices", kit.Prices, "error", err)
+		r.logger.Ctx(ctx).Errorw("failed to convert to kit DAO", "kit.prices", kit.Prices, "error", err)
 		return "", err
 	}
 
@@ -83,7 +83,7 @@ func (r *KitRepository) Insert(ctx context.Context, kit domain.Kit) (string, err
 		primitive.E{Key: "prices", Value: pricesDAO},
 	})
 	if err != nil {
-		r.logger.Errorw("failed to insert kit", "kit", kit, "error", err)
+		r.logger.Ctx(ctx).Errorw("failed to insert kit", "kit", kit, "error", err)
 		return "", err
 	}
 	if oid, ok := res.InsertedID.(primitive.ObjectID); ok {
@@ -96,7 +96,7 @@ func (r *KitRepository) Insert(ctx context.Context, kit domain.Kit) (string, err
 func (r *KitRepository) Update(ctx context.Context, id string, kit domain.Kit) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		r.logger.Errorw("failed to convert string to mongo ObjectID", "id", id, "error", err)
+		r.logger.Ctx(ctx).Errorw("failed to convert string to mongo ObjectID", "id", id, "error", err)
 		return err
 	}
 	after := options.After
@@ -105,7 +105,7 @@ func (r *KitRepository) Update(ctx context.Context, id string, kit domain.Kit) e
 	}
 	recipeDAO, err := convertToDAORecipe(kit.Recipe)
 	if err != nil {
-		r.logger.Errorw("failed to convert to kit DAO", "kit.recipe", kit.Recipe, "error", err)
+		r.logger.Ctx(ctx).Errorw("failed to convert to kit DAO", "kit.recipe", kit.Recipe, "error", err)
 		return err
 	}
 
@@ -132,7 +132,7 @@ func (r *KitRepository) Update(ctx context.Context, id string, kit domain.Kit) e
 		if err == mongo.ErrNoDocuments {
 			return &custom.ElemNotFoundError{ID: id, Err: fmt.Errorf("no kit found to update")}
 		}
-		r.logger.Errorw("failed to update kit", "kit", kit, "error", err)
+		r.logger.Ctx(ctx).Errorw("failed to update kit", "kit", kit, "error", err)
 		return err
 	}
 	return nil
@@ -142,7 +142,7 @@ func (r *KitRepository) Update(ctx context.Context, id string, kit domain.Kit) e
 func (r *KitRepository) UpdatePrice(ctx context.Context, id string, prices []domain.Price) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		r.logger.Errorw("failed to convert string to mongo ObjectID", "id", id, "error", err)
+		r.logger.Ctx(ctx).Errorw("failed to convert string to mongo ObjectID", "id", id, "error", err)
 		return err
 	}
 	after := options.After
@@ -151,7 +151,7 @@ func (r *KitRepository) UpdatePrice(ctx context.Context, id string, prices []dom
 	}
 	priceDAOs, err := convertToDAOPrices(prices)
 	if err != nil {
-		r.logger.Errorw("failed to convert to kit DAO prices", "prices", prices, "error", err)
+		r.logger.Ctx(ctx).Errorw("failed to convert to kit DAO prices", "prices", prices, "error", err)
 		return err
 	}
 
@@ -168,7 +168,7 @@ func (r *KitRepository) UpdatePrice(ctx context.Context, id string, prices []dom
 		if err == mongo.ErrNoDocuments {
 			return &custom.ElemNotFoundError{ID: id, Err: fmt.Errorf("no kit found to update prices")}
 		}
-		r.logger.Errorw("failed to update kit prices", "prices", prices, "error", err)
+		r.logger.Ctx(ctx).Errorw("failed to update kit prices", "prices", prices, "error", err)
 		return err
 	}
 	return nil
@@ -177,12 +177,12 @@ func (r *KitRepository) UpdatePrice(ctx context.Context, id string, prices []dom
 func (r *KitRepository) Delete(ctx context.Context, id string) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		r.logger.Errorw("could not convert id to objectID", "id", id, "error", err)
+		r.logger.Ctx(ctx).Errorw("could not convert id to objectID", "id", id, "error", err)
 	}
 
 	res, err := r.kitColl.DeleteOne(ctx, bson.M{"_id": objectID})
 	if err != nil {
-		r.logger.Errorw("failed to delete kit", "id", id, "error", err)
+		r.logger.Ctx(ctx).Errorw("failed to delete kit", "id", id, "error", err)
 		return err
 	}
 	if res.DeletedCount == 0 {
@@ -194,16 +194,16 @@ func (r *KitRepository) Delete(ctx context.Context, id string) error {
 func (r *KitRepository) Get(ctx context.Context, id string) (domain.Kit, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		r.logger.Errorw("could not convert id to objectID", "id", id, "error", err)
+		r.logger.Ctx(ctx).Errorw("could not convert id to objectID", "id", id, "error", err)
 		return domain.Kit{}, err
 	}
 	var kitDAO kitFetchDAO
 	if err = r.kitColl.FindOne(ctx, bson.M{"_id": objectID}).Decode(&kitDAO); err != nil {
 		if err == mongo.ErrNoDocuments {
-			r.logger.Debugw("no category found with id", "id", id)
+			r.logger.Ctx(ctx).Debugw("no category found with id", "id", id)
 			return domain.Kit{}, &custom.ElemNotFoundError{ID: id, Err: err}
 		}
-		r.logger.Errorw("error getting kit", "id", id, "error", err)
+		r.logger.Ctx(ctx).Errorw("error getting kit", "id", id, "error", err)
 		return domain.Kit{}, err
 	}
 	return convertToDomainKit(kitDAO), nil
@@ -226,11 +226,11 @@ func (r *KitRepository) GetAll(ctx context.Context) ([]domain.Kit, error) {
 		opts,
 	)
 	if err != nil {
-		r.logger.Errorw("failed to get kits from db", "error", err)
+		r.logger.Ctx(ctx).Errorw("failed to get kits from db", "error", err)
 		return nil, err
 	}
 	if err = cursor.All(ctx, &daos); err != nil {
-		r.logger.Errorw("failed to map kit cursor to a list of DAO objects", "error", err)
+		r.logger.Ctx(ctx).Errorw("failed to map kit cursor to a list of DAO objects", "error", err)
 		return nil, err
 	}
 

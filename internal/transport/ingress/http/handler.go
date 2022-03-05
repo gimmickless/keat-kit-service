@@ -1,33 +1,41 @@
 package http
 
 import (
+	"github.com/gimmickless/keat-kit-service/configs"
 	"github.com/gimmickless/keat-kit-service/internal/app"
 	"github.com/gofiber/fiber/v2"
-	"go.uber.org/zap"
+	"github.com/uptrace/opentelemetry-go-extra/otelzap"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
 type HTTPHandler struct {
-	logger    *zap.SugaredLogger
+	logger    *otelzap.SugaredLogger
 	catgsrv   *app.CategoryService
 	ingredsrv *app.IngredientService
 	kitsrv    *app.KitService
+	tracer    oteltrace.Tracer
 }
 
 // NewHTTPHandler constructs a new HTTPHandler.
 func NewHTTPHandler(
-	logger *zap.SugaredLogger,
+	logger *otelzap.SugaredLogger,
 	catgsrv *app.CategoryService,
 	ingredsrv *app.IngredientService,
 	kitsrv *app.KitService,
 ) *HTTPHandler {
-	return &HTTPHandler{logger, catgsrv, ingredsrv, kitsrv}
+	tracer := otel.Tracer(configs.App.OpenTelemetry.TracerName)
+	return &HTTPHandler{logger, catgsrv, ingredsrv, kitsrv, tracer}
 }
 
 // Category handlers
 func (h *HTTPHandler) GetCategories(c *fiber.Ctx) error {
+	_, span := h.tracer.Start(c.Context(), "GetCategories")
+	defer span.End()
 	catgs, err := h.catgsrv.GetAll(c.Context())
 	if err != nil {
-		h.logger.Errorw("Could not get categories", "err", err)
+		h.logger.Ctx(c.Context()).Errorw("Could not get categories", "err", err)
 		return err
 	}
 	return c.JSON(catgs)
@@ -35,9 +43,11 @@ func (h *HTTPHandler) GetCategories(c *fiber.Ctx) error {
 
 func (h *HTTPHandler) GetCategory(c *fiber.Ctx) error {
 	catgID := c.Params("id")
+	_, span := h.tracer.Start(c.Context(), "GetCategory", oteltrace.WithAttributes(attribute.String("id", catgID)))
+	defer span.End()
 	catg, err := h.catgsrv.Get(c.Context(), catgID)
 	if err != nil {
-		h.logger.Errorw("Could not get category", "id", catgID, "err", err)
+		h.logger.Ctx(c.Context()).Errorw("Could not get category", "id", catgID, "err", err)
 		return err
 	}
 	return c.JSON(catg)
@@ -59,13 +69,15 @@ func (h *HTTPHandler) UploadCategoryImage(c *fiber.Ctx) error {
 
 func (h *HTTPHandler) DeleteCategory(c *fiber.Ctx) error {
 	catgID := c.Params("id")
+	_, span := h.tracer.Start(c.Context(), "DeleteCategory", oteltrace.WithAttributes(attribute.String("id", catgID)))
+	defer span.End()
 	if !isAdmin(c) {
-		h.logger.Errorw("Not authorized to delete category", "id", catgID)
+		h.logger.Ctx(c.Context()).Errorw("Not authorized to delete category", "id", catgID)
 		return c.SendStatus(fiber.StatusUnauthorized)
 	}
 	err := h.catgsrv.Delete(c.Context(), catgID)
 	if err != nil {
-		h.logger.Errorw("Could not delete categories", "err", err)
+		h.logger.Ctx(c.Context()).Errorw("Could not delete categories", "err", err)
 		return err
 	}
 	return c.JSON(fiber.Map{

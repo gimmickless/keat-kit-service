@@ -5,7 +5,7 @@ import (
 
 	"github.com/gimmickless/keat-kit-service/internal/domain"
 	"github.com/gimmickless/keat-kit-service/pkg/enum"
-	"go.uber.org/zap"
+	"github.com/uptrace/opentelemetry-go-extra/otelzap"
 )
 
 type IKitService interface {
@@ -21,12 +21,12 @@ type IKitService interface {
 }
 
 type KitService struct {
-	logger  *zap.SugaredLogger
+	logger  *otelzap.SugaredLogger
 	kitRepo IKitRepo
 }
 
 func NewKitService(
-	logger *zap.SugaredLogger,
+	logger *otelzap.SugaredLogger,
 	kitRepo IKitRepo,
 ) *KitService {
 	return &KitService{logger, kitRepo}

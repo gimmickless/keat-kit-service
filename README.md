@@ -10,6 +10,7 @@ Create a `.env` file at the project root to store the required environment varia
 # .env
 MONGO_URI=mongodb://localhost:27017/test
 MONGODB_SRV_DB=default
+OTEL_TRACER_NAME=github.com/gimmickless/keat-kit-service
 ```
 
 ## Linting
@@ -44,6 +45,6 @@ The [AWS API Gateway](https://aws.amazon.com/api-gateway/) should validate the J
 
 - [Go Standard Project Layout](https://github.com/golang-standards/project-layout)
 
-- [NewRelic Go framework integrations](https://docs.newrelic.com/docs/apm/agents/go-agent/get-started/go-agent-compatibility-requirements/#frameworks)
+- [OpenTelemetry x Fiber Example](https://github.com/gofiber/contrib/blob/main/otelfiber/example/server.go)
 
 - A reason for using `self` or `me` in REST URI when the user id can be extracted from the JWT and the user only manage data of themselves: https://softwareengineering.stackexchange.com/a/362064/374006

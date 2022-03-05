@@ -10,6 +10,7 @@ import (
 	"github.com/benweissmann/memongo"
 	"github.com/gimmickless/keat-kit-service/internal/app"
 	"github.com/gimmickless/keat-kit-service/internal/transport/egress/db"
+	"github.com/uptrace/opentelemetry-go-extra/otelzap"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -57,7 +58,7 @@ func TestMain(m *testing.M) {
 		}
 	}()
 
-	logger := zap.NewNop().Sugar()
+	logger := otelzap.New(zap.NewNop()).Sugar()
 	testDB = client.Database(mongoDefaultDB)
 	catgRepo = db.NewCategoryRepository(logger, testDB)
 	ingredRepo = db.NewIngredientRepository(logger, testDB)

@@ -5,7 +5,7 @@ import (
 
 	"github.com/gimmickless/keat-kit-service/internal/domain"
 	"github.com/gimmickless/keat-kit-service/pkg/enum"
-	"go.uber.org/zap"
+	"github.com/uptrace/opentelemetry-go-extra/otelzap"
 )
 
 type IIngredientService interface {
@@ -20,12 +20,12 @@ type IIngredientService interface {
 }
 
 type IngredientService struct {
-	logger     *zap.SugaredLogger
+	logger     *otelzap.SugaredLogger
 	ingredRepo IIngredientRepo
 }
 
 func NewIngredientService(
-	logger *zap.SugaredLogger,
+	logger *otelzap.SugaredLogger,
 	ingredRepo IIngredientRepo,
 ) *IngredientService {
 	return &IngredientService{logger, ingredRepo}
