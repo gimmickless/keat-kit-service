@@ -33,6 +33,12 @@ in the main directory.
 go run ./cmd/campaign/main.go --env ./.env
 ```
 
+## Updating Dependencies
+
+```sh
+go get -u ./... && go mod tidy -compat=1.17
+```
+
 ## Discussion
 
 ### JWT Token
